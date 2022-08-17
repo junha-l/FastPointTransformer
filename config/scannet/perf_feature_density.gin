@@ -1,0 +1,6 @@
+
+# Constant
+in_channels = 1 
+
+# Data Module
+PeRFceptionScannetDataset.features=['density']

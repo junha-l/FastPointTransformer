@@ -5,8 +5,8 @@ from datetime import datetime
 import gin
 import pytorch_lightning as pl
 
-from src.models import get_model
 from src.data import get_data_module
+from src.models import get_model
 from src.modules import get_lightning_module
 from src.utils.file import ensure_dir
 from src.utils.logger import setup_logger
@@ -29,21 +29,27 @@ def train(
     max_epoch,
     max_step,
 ):
-    now = datetime.now().strftime('%m-%d-%H-%M-%S')
+    now = datetime.now().strftime("%m-%d-%H-%M-%S")
     run_name = run_name + "_" + now
     save_path = os.path.join(save_path, run_name)
     ensure_dir(save_path)
 
     data_module = get_data_module(data_module_name)()
     model = get_model(model_name)()
-    pl_module = get_lightning_module(lightning_module_name)(model=model, max_steps=max_step)
-    gin.finalize()
+    pl_module = get_lightning_module(lightning_module_name)(
+        model=model, max_steps=max_step
+    )
+    # gin.finalize()
 
     hparams = logged_hparams()
     callbacks = [
         pl.callbacks.TQDMProgressBar(refresh_rate=refresh_rate_per_second),
         pl.callbacks.ModelCheckpoint(
-            dirpath=save_path, monitor=best_metric, save_last=True, save_top_k=1, mode="max"
+            dirpath=save_path,
+            monitor=best_metric,
+            save_last=True,
+            save_top_k=1,
+            mode="max",
         ),
         pl.callbacks.LearningRateMonitor(),
     ]
@@ -53,7 +59,7 @@ def train(
             save_dir=save_path,
             project=project_name,
             log_model=True,
-            entity="chrockey",
+            # entity="chrockey",
             config=hparams,
         )
     ]
@@ -70,7 +76,7 @@ def train(
         logger=loggers,
         log_every_n_steps=log_every_n_steps,
         check_val_every_n_epoch=check_val_every_n_epoch,
-        **additional_kwargs
+        **additional_kwargs,
     )
 
     # write config file
@@ -82,7 +88,7 @@ def train(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("config", type=str)
+    parser.add_argument("--config", action="append")
     parser.add_argument("--save_path", type=str, default="experiments")
     parser.add_argument("--run_name", type=str, default="default")
     parser.add_argument("--seed", type=int, default=1235)
@@ -91,9 +97,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     pl.seed_everything(args.seed)
-    gin.parse_config_file(args.config)
+    bindings = []
     if args.voxel_size is not None:
-        gin.bind_parameter("DimensionlessCoordinates.voxel_size", args.voxel_size)
+        bindings.append(f"DimensionlessCoordinates.voxel_size = {args.voxel_size}")
+    gin.parse_config_files_and_bindings(args.config, bindings)
     setup_logger(args.run_name, args.debug)
 
     train(save_path=args.save_path, run_name=args.run_name)

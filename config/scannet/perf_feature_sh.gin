@@ -1,0 +1,6 @@
+
+# Constant
+in_channels = 27 
+
+# Data Module
+PeRFceptionScannetDataset.features=['sh']

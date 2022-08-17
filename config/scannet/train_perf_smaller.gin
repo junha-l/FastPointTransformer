@@ -1,0 +1,28 @@
+
+include "./config/scannet/train_fpt.gin"
+
+# Constant
+in_channels = 27
+
+# Model
+train.model_name = "FastPointTransformerSmaller"
+
+# Data Module
+ScanNetRGBDataModule.perfception = True
+ScanNetRGBDataModule.data_root = "/root/data/perf-scannet/reso256_pad1"
+ScanNetRGBDataModule.train_transforms = [
+    "DimensionlessCoordinates",
+    "RandomRotation",
+    "RandomCrop",
+    "RandomAffine", # affine to rotate the rectangular crop
+    "CoordinateDropout",
+    # "ChromaticTranslation",
+    # "ChromaticJitter",
+    "RandomHorizontalFlip",
+    "RandomTranslation",
+    "ElasticDistortion",
+]
+ScanNetRGBDataModule.eval_transforms = [
+    "DimensionlessCoordinates",
+]
+PeRFceptionScannetDataset.features=['sh']
