@@ -1,0 +1,9 @@
+
+include "./config/scannet/train_perf.gin"
+
+# Data Module
+ScanNetRGBDataModule.data_root = "/home/junhakiwi/data/reso256_pad2"
+
+RandomCrop.x = 200 
+RandomCrop.y = 200
+RandomCrop.z = 200

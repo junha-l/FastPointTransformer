@@ -3,4 +3,4 @@
 in_channels = 1 
 
 # Data Module
-PeRFceptionScannetDataset.features=['one']
+PeRFceptionScannetDataset.features=['ones']

@@ -28,6 +28,7 @@ def train(
     best_metric,
     max_epoch,
     max_step,
+    ckpt_path=None,
 ):
     now = datetime.now().strftime("%m-%d-%H-%M-%S")
     run_name = run_name + "_" + now
@@ -83,7 +84,10 @@ def train(
     with open(os.path.join(save_path, "config.gin"), "w") as f:
         f.write(gin.operative_config_str())
 
-    trainer.fit(pl_module, data_module)
+    if ckpt_path is not None:
+        trainer.fit(pl_module, data_module, ckpt_path=ckpt_path)
+    else:
+        trainer.fit(pl_module, data_module)
 
 
 if __name__ == "__main__":
@@ -94,12 +98,15 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=1235)
     parser.add_argument("-v", "--voxel_size", type=float, default=None)
     parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--ckpt_path",type=str,default=None)
     args = parser.parse_args()
 
     pl.seed_everything(args.seed)
     bindings = []
     if args.voxel_size is not None:
         bindings.append(f"DimensionlessCoordinates.voxel_size = {args.voxel_size}")
+    if args.ckpt_path is not None:
+        bindings.append(f"train.ckpt_path = '{args.ckpt_path}'")
     gin.parse_config_files_and_bindings(args.config, bindings)
     setup_logger(args.run_name, args.debug)
 
